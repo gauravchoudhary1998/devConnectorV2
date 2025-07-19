@@ -1,0 +1,40 @@
+# devconnector/docker-compose.yml
+
+services:
+  mongo:
+    image: mongo:6
+    restart: always
+    container_name: devconnector-mongo
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build: .
+    container_name: devconnector-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/devconnector
+      - JWT_SECRET=somesecret
+      - NODE_ENV=development
+      - GITHUB_TOKEN=GITHUB_TOKEN_HERE
+    depends_on:
+      - mongo
+
+  frontend:
+    build:
+      context: ./client
+    container_name: devconnector-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://backend:5000/api
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
