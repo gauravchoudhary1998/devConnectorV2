@@ -9,7 +9,6 @@ RUN npm install
 
 COPY . .
 
-ENV REACT_APP_API_URL=/api
 RUN npm run build
 
 # Use nginx to serve build
