@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: gauravchoudhary15/backend:latest
+          image: gauravchoudhary15/devconnector-backend:latest
           ports:
             - containerPort: 5000
           env:
