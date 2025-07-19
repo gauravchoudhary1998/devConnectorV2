@@ -9,6 +9,7 @@ RUN npm install
 
 COPY . .
 
+ENV REACT_APP_API_URL=http://backend:5000/api
 RUN npm run build
 
 # Use nginx to serve build
