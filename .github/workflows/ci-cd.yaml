@@ -81,7 +81,13 @@ jobs:
         git add k8s/base/frontend/deployment.yaml k8s/base/backend/deployment.yaml
         git commit -m "ci: update image tags to ${{ steps.vars.outputs.sha_short }}"
         git push origin master
-
+    
+    # Install Argo CD CLI
+    - name: Install Argo CD CLI
+      run: |
+        curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+        chmod +x argocd
+        sudo mv argocd /usr/local/bin/argocd
     # Trigger Argo CD sync
     - name: Argo CD Deploy
       run: |
