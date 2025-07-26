@@ -1,0 +1,121 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [master]
+permissions:
+  contents: write
+
+jobs:
+  set-variables:
+    runs-on: ubuntu-latest
+    outputs:
+      commit_sha: ${{ steps.vars.outputs.commit_sha }}
+    steps:
+      - name: Set commit SHA
+        id: vars
+        run: echo "commit_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+  
+  gitleaks:
+    needs: checkout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gitleaks/gitleaks-action@v2
+        with:
+          args: "--verbose"
+  
+  sonarqube:
+    needs: checkout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+      - name: Run SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonarqube -Dsonar.login=$SONAR_TOKEN
+
+  build-and-push-frontend:
+    runs-on: ubuntu-latest
+    needs: set-variables
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build & Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./client
+          file: ./client/Dockerfile
+          push: true
+          tags: gauravchoudhary15/devconnector-frontend:${{ needs.set-variables.outputs.commit_sha }}
+      
+      - name: Install Trivy
+        run: |
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.50.0_Linux-64bit.deb
+
+      - name: Scan image with Trivy
+        run: trivy image gauravchoudhary15/devconnector-frontend:${{ needs.checkout.outputs.sha }}
+
+  build-and-push-backend:
+    runs-on: ubuntu-latest
+    needs: set-variables
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build & Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: gauravchoudhary15/devconnector-backend:${{ needs.set-variables.outputs.commit_sha }}
+        
+      - name: Install Trivy
+        run: |
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.50.0_Linux-64bit.deb
+
+      - name: Scan image with Trivy
+        run: trivy image gauravchoudhary15/devconnector-backend:${{ needs.checkout.outputs.sha }}
+
+  update-k8s-manifests:
+    runs-on: ubuntu-latest
+    needs: [set-variables, build-and-push-frontend, build-and-push-backend]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure Git
+        run: |
+          git config user.name "gauravchoudhary1998"
+          git config user.email "choudharyg015@gmail.com"
+
+      - name: Update image tags in YAML
+        run: |
+          sed -i "s|image: .*/devconnector-frontend:.*|image: gauravchoudhary15/devconnector-frontend:${{ needs.set-variables.outputs.commit_sha }}|g" k8s/base/frontend/deployment.yaml
+          sed -i "s|image: .*/devconnector-backend:.*|image: gauravchoudhary15/devconnector-backend:${{ needs.set-variables.outputs.commit_sha }}|g" k8s/base/backend/deployment.yaml
+
+      - name: Commit & Push updated manifests
+        run: |
+          git add k8s/base/frontend/deployment.yaml k8s/base/backend/deployment.yaml
+          git commit -m "ci: update image tags to ${{ needs.set-variables.outputs.commit_sha }}"
+          git push origin master
+
