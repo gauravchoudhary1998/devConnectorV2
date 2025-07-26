@@ -17,7 +17,7 @@ jobs:
         run: echo "commit_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
   
   gitleaks:
-    needs: checkout
+    needs: set-variables
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
           args: "--verbose"
   
   sonarqube:
-    needs: checkout
+    needs: set-variables
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
