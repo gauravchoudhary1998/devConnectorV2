@@ -34,7 +34,6 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonarqube -Dsonar.login=$SONAR_TOKEN
 
   build-and-push-frontend:
     runs-on: ubuntu-latest
