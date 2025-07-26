@@ -32,6 +32,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
+        with:
+          projectBaseDir: .
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
