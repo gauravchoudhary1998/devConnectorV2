@@ -4,6 +4,7 @@ const connectDB = require('./config/db');
 const path = require('path');
 
 const app = express();
+const register = new client.Registry();
 var cors = require('cors')
 client.collectDefaultMetrics();
 
@@ -13,6 +14,25 @@ connectDB();
 
 // Init Middleware
 app.use(express.json());
+
+//custom middleware to count HTTP requests
+const httpRequestCounter = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status_code'],
+});
+register.registerMetric(httpRequestCounter);
+
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    httpRequestCounter.inc({
+      method: req.method,
+      route: req.route?.path || req.path,
+      status_code: res.statusCode,
+    });
+  });
+  next();
+});
 
 // Define Routes
 app.get('/metrics', async (req, res) => {
