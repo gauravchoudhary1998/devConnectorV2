@@ -17,6 +17,7 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.info(`[POST /api/posts] Validation failed for user ${req.user.id}`);
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -31,7 +32,7 @@ router.post(
       });
 
       const post = await newPost.save();
-
+      console.info(`[POST /api/posts] New post created by user ${req.user.id}, postId: ${post.id}`);
       res.json(post);
     } catch (err) {
       console.error(err.message);
@@ -46,6 +47,7 @@ router.post(
 router.get('/', auth, async (req, res) => {
   try {
     const posts = await Post.find().sort({ date: -1 });
+    console.info(`[GET /api/posts] All posts fetched by user ${req.user.id}`);
     res.json(posts);
   } catch (err) {
     console.error(err.message);
@@ -61,9 +63,11 @@ router.get('/:id', auth, checkObjectId('id'), async (req, res) => {
     const post = await Post.findById(req.params.id);
 
     if (!post) {
+      console.info(`[GET /api/posts/${req.params.id}] Post not found for user ${req.user.id}`);
       return res.status(404).json({ msg: 'Post not found' });
     }
 
+    console.info(`[GET /api/posts/${req.params.id}] Post fetched by user ${req.user.id}`);
     res.json(post);
   } catch (err) {
     console.error(err.message);
@@ -80,16 +84,19 @@ router.delete('/:id', [auth, checkObjectId('id')], async (req, res) => {
     const post = await Post.findById(req.params.id);
 
     if (!post) {
+      console.info(`[DELETE /api/posts/${req.params.id}] Post not found for user ${req.user.id}`);
       return res.status(404).json({ msg: 'Post not found' });
     }
 
     // Check user
     if (post.user.toString() !== req.user.id) {
+      console.info(`[DELETE /api/posts/${req.params.id}] Unauthorized delete attempt by user ${req.user.id}`);
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
     await post.remove();
 
+    console.info(`[DELETE /api/posts/${req.params.id}] Post deleted by user ${req.user.id}`);
     res.json({ msg: 'Post removed' });
   } catch (err) {
     console.error(err.message);
@@ -107,6 +114,7 @@ router.put('/like/:id', auth, checkObjectId('id'), async (req, res) => {
 
     // Check if the post has already been liked
     if (post.likes.some((like) => like.user.toString() === req.user.id)) {
+      console.info(`[PUT /api/posts/like/${req.params.id}] Post already liked by user ${req.user.id}`);
       return res.status(400).json({ msg: 'Post already liked' });
     }
 
@@ -114,6 +122,7 @@ router.put('/like/:id', auth, checkObjectId('id'), async (req, res) => {
 
     await post.save();
 
+    console.info(`[PUT /api/posts/like/${req.params.id}] Post liked by user ${req.user.id}`);
     return res.json(post.likes);
   } catch (err) {
     console.error(err.message);
@@ -130,6 +139,7 @@ router.put('/unlike/:id', auth, checkObjectId('id'), async (req, res) => {
 
     // Check if the post has not yet been liked
     if (!post.likes.some((like) => like.user.toString() === req.user.id)) {
+      console.info(`[PUT /api/posts/unlike/${req.params.id}] Post not yet liked by user ${req.user.id}`);
       return res.status(400).json({ msg: 'Post has not yet been liked' });
     }
 
@@ -140,6 +150,7 @@ router.put('/unlike/:id', auth, checkObjectId('id'), async (req, res) => {
 
     await post.save();
 
+    console.info(`[PUT /api/posts/unlike/${req.params.id}] Post unliked by user ${req.user.id}`);
     return res.json(post.likes);
   } catch (err) {
     console.error(err.message);
@@ -158,6 +169,7 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.info(`[POST /api/posts/comment/${req.params.id}] Validation failed for user ${req.user.id}`);
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -175,7 +187,7 @@ router.post(
       post.comments.unshift(newComment);
 
       await post.save();
-
+      console.info(`[POST /api/posts/comment/${req.params.id}] New comment added by user ${req.user.id}`);
       res.json(post.comments);
     } catch (err) {
       console.error(err.message);
@@ -197,10 +209,12 @@ router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
     );
     // Make sure comment exists
     if (!comment) {
+      console.info(`[DELETE /api/posts/comment/${req.params.id}/${req.params.comment_id}] Comment not found for user ${req.user.id}`);
       return res.status(404).json({ msg: 'Comment does not exist' });
     }
     // Check user
     if (comment.user.toString() !== req.user.id) {
+      console.info(`[DELETE /api/posts/comment/${req.params.id}/${req.params.comment_id}] Unauthorized comment delete attempt by user ${req.user.id}`);
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
@@ -210,6 +224,7 @@ router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
 
     await post.save();
 
+    console.info(`[DELETE /api/posts/comment/${req.params.id}/${req.params.comment_id}] Comment deleted by user ${req.user.id}`);
     return res.json(post.comments);
   } catch (err) {
     console.error(err.message);

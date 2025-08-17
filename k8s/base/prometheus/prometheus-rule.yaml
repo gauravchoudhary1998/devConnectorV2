@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: backend-alerts
+  namespace: monitoring   # same namespace as Prometheus
+spec:
+  groups:
+  - name: backend.rules
+    rules:
+    - alert: HighHttpRequests
+      expr: sum(rate(http_requests_total[2m])) > 10
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: High HTTP request rate detected
+        description: "Node.js backend is receiving more than 10 requests/sec for 2 minute."

@@ -23,6 +23,7 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.info(`[POST /api/users] Validation failed for email: ${req.body.email}`);
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -32,6 +33,7 @@ router.post(
       let user = await User.findOne({ email });
 
       if (user) {
+        console.info(`[POST /api/users] Registration failed: User already exists for email: ${email}`);
         return res
           .status(400)
           .json({ errors: [{ msg: 'User already exists' }] });

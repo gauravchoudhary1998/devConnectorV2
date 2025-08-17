@@ -23,9 +23,11 @@ router.get('/me', auth, async (req, res) => {
     }).populate('user', ['name', 'avatar']);
 
     if (!profile) {
+      console.info(`[GET /api/profile/me] No profile found for user ${req.user.id}`);
       return res.status(400).json({ msg: 'There is no profile for this user' });
     }
 
+    console.info(`[GET /api/profile/me] Profile fetched for user ${req.user.id}`);
     res.json(profile);
   } catch (err) {
     console.error(err.message);
@@ -44,6 +46,7 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.info(`[POST /api/profile] Validation failed for user ${req.user.id}`);
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -91,6 +94,7 @@ router.post(
         { $set: profileFields },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       );
+      console.info(`[POST /api/profile] Profile created/updated for user ${req.user.id}`);
       return res.json(profile);
     } catch (err) {
       console.error(err.message);
@@ -105,6 +109,7 @@ router.post(
 router.get('/', async (req, res) => {
   try {
     const profiles = await Profile.find().populate('user', ['name', 'avatar']);
+    console.info(`[GET /api/profile] All profiles fetched`);
     res.json(profiles);
   } catch (err) {
     console.error(err.message);
@@ -126,6 +131,7 @@ router.get(
 
       if (!profile) return res.status(400).json({ msg: 'Profile not found' });
 
+      console.info(`[GET /api/profile/user/${user_id}] Profile fetched`);
       return res.json(profile);
     } catch (err) {
       console.error(err.message);
@@ -147,7 +153,7 @@ router.delete('/', auth, async (req, res) => {
       Profile.findOneAndRemove({ user: req.user.id }),
       User.findOneAndRemove({ _id: req.user.id })
     ]);
-
+    console.info(`[DELETE /api/profile] User, profile, and posts deleted for user ${req.user.id}`);
     res.json({ msg: 'User deleted' });
   } catch (err) {
     console.error(err.message);
@@ -169,6 +175,7 @@ router.put(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.info(`[PUT /api/profile/experience] Validation failed for user ${req.user.id}`);
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -179,6 +186,7 @@ router.put(
 
       await profile.save();
 
+      console.info(`[PUT /api/profile/experience] Experience added for user ${req.user.id}`);
       res.json(profile);
     } catch (err) {
       console.error(err.message);
@@ -200,6 +208,7 @@ router.delete('/experience/:exp_id', auth, async (req, res) => {
     );
 
     await foundProfile.save();
+    console.info(`[DELETE /api/profile/experience/${req.params.exp_id}] Experience deleted for user ${req.user.id}`);
     return res.status(200).json(foundProfile);
   } catch (error) {
     console.error(error);
@@ -222,6 +231,7 @@ router.put(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.info(`[PUT /api/profile/education] Validation failed for user ${req.user.id}`);
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -232,6 +242,7 @@ router.put(
 
       await profile.save();
 
+      console.info(`[PUT /api/profile/education] Education added for user ${req.user.id}`);
       res.json(profile);
     } catch (err) {
       console.error(err.message);
@@ -251,6 +262,7 @@ router.delete('/education/:edu_id', auth, async (req, res) => {
       (edu) => edu._id.toString() !== req.params.edu_id
     );
     await foundProfile.save();
+    console.info(`[DELETE /api/profile/education/${req.params.edu_id}] Education deleted for user ${req.user.id}`);
     return res.status(200).json(foundProfile);
   } catch (error) {
     console.error(error);
@@ -272,6 +284,7 @@ router.get('/github/:username', async (req, res) => {
     };
 
     const gitHubResponse = await axios.get(uri, { headers });
+    console.info(`[GET /api/profile/github/${req.params.username}] Github repos fetched`);
     return res.json(gitHubResponse.data);
   } catch (err) {
     console.error(err.message);
