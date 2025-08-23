@@ -1,0 +1,4 @@
+grafana:
+  enabled: false   # don’t install Grafana again
+promtail:
+  enabled: true
