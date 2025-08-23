@@ -1,17 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: monitoring
+  name: prometheus-grafana
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://prometheus-community.github.io/helm-charts
-    chart: kube-prometheus-stack
-    targetRevision: 61.2.0 # pick a stable version
+    repoURL: 'https://github.com/gauravchoudhary1998/devConnectorV2.git'
+    targetRevision: master
+    path: monitoring-stack/prometheus-grafana
     helm:
+      releaseName: prometheus-grafana
       valueFiles:
-        - values.yaml  # <-- stored in YOUR repo
+        - values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

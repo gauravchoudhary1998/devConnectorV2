@@ -1,3 +1,10 @@
+loki:
+  enabled: true
+  persistence:
+    enabled: true
+    storageClassName: standard
+    size: 10Gi
+    
 grafana:
   enabled: false   # don’t install Grafana again
 promtail:

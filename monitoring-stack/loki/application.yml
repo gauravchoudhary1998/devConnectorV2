@@ -1,15 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: loki
+  name: loki-stack
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://grafana.github.io/helm-charts
-    chart: loki-stack
-    targetRevision: 2.9.12
+    repoURL: 'https://github.com/gauravchoudhary1998/devConnectorV2.git'
+    targetRevision: master
+    path: monitoring-stack/loki
     helm:
+      releaseName: loki-stack
       valueFiles:
         - values.yaml
   destination:
@@ -19,3 +20,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
