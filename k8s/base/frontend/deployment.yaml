@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: gauravchoudhary15/devconnector-frontend:84cd9ea
+          image: gauravchoudhary15/devconnector-frontend:a5d3c1b
           ports:
             - containerPort: 80
           env:
