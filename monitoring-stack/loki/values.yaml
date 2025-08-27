@@ -1,49 +1,75 @@
-# Force single-process Loki
-deploymentMode: SingleBinary
-
-# Build Loki's config from structured values (do NOT set loki.config:)
 loki:
-  auth_enabled: false
-
-  # Filesystem storage for local/minikube
+  commonConfig:
+    replication_factor: 1
   storage:
-    type: filesystem
-    filesystem:
-      chunks_directory: /var/loki/chunks
-      rules_directory: /var/loki/rules
-
-  # TSDB schema using filesystem
+    type: 'filesystem'
+    bucketNames:
+      chunks: chunks
+      ruler: ruler
+      admin: admin
   schemaConfig:
     configs:
-      - from: "2024-01-01"
+      - from: "2024-04-01"
         store: tsdb
         object_store: filesystem
         schema: v13
         index:
           prefix: loki_index_
           period: 24h
+  storage_config:
+    filesystem:
+      directory: /tmp/loki/chunks
+  pattern_ingester:
+    enabled: true
+  limits_config:
+    allow_structured_metadata: true
+    volume_enabled: true
+  ruler:
+    enable_api: true
+  auth_enabled: false
 
-# Single binary pod count
+minio:
+  enabled: false
+      
+deploymentMode: SingleBinary
+
 singleBinary:
   replicas: 1
+  persistence:
+    storageClass: standard
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
 
-# Persist data so restarts don't erase logs
-persistence:
-  enabled: true
-  size: 10Gi
-  accessModes: [ "ReadWriteOnce" ]
-  # use your cluster's StorageClass (minikube often 'standard' or 'standard-rwo')
-  # storageClass: standard
+  resources:
+    requests:
+      cpu: "1"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "2Gi"
 
-# Optional: turn off extras you don't need locally
-gateway:
-  enabled: false
-resultsCache:
-  enabled: false
+sidecar:
+  image:
+    repository: kiwigrid/k8s-sidecar
+    tag: 1.30.0
+  resources:
+    requests:
+      cpu: 50m
+      memory: 50Mi
+    limits:
+      cpu: 100m
+      memory: 100Mi
+
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+
 chunksCache:
-  enabled: false
-ruler:
-  enabled: false
+  allocatedMemory: 500
 
 grafana:
   enabled: false   # don’t install Grafana again
