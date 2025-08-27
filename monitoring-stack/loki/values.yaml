@@ -7,6 +7,9 @@ loki:
       chunks: chunks
       ruler: ruler
       admin: admin
+    filesystem:
+      chunks_directory: /var/loki/chunks
+      rules_directory: /var/loki/rules
   schemaConfig:
     configs:
       - from: "2024-04-01"
