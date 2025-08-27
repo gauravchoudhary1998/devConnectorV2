@@ -1,10 +1,16 @@
 loki:
+  auth_enabled: false
+  storage:
+    type: filesystem
+    filesystem:
+      chunks_directory: /var/loki/chunks
+      rules_directory: /var/loki/rules
   commonConfig:
     replication_factor: 1
   schemaConfig:
     configs:
       - from: "2024-04-01"
-        store: tsdb
+        store: boltdb-shipper
         object_store: filesystem
         schema: v13
         index:
