@@ -62,6 +62,7 @@ flowchart TD
     M -->|Dashboards| L
     M -->|Dashboards| O
     N -->|Alerts| M
+    P -->|Logs| O
 
 ```
 
