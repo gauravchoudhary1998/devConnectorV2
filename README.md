@@ -90,7 +90,7 @@ Prometheus Metrics Flow
 
 ```mermaid
 flowchart LR
-    A["Node.js App (DevConnectorV2)"] -->|Exposes /metrics (Prometheus client)| B["Kubernetes Service"]
+    A["Node.js App (DevConnectorV2)"] -->|"Exposes /metrics endpoint"| B["Kubernetes Service"]
     B --> C["Prometheus Server"]
 
     subgraph Prometheus
