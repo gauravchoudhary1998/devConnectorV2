@@ -36,17 +36,10 @@ Originally forked from [Brad Traversy’s DevConnector](https://github.com/bradt
 
 ## ⚙️ CI/CD & GitOps Workflow
 
-```mermaid
-flowchart LR
-  A[Developer writes code] --> B[GitHub Repo]
-  B --> C[GitHub Actions]
-  C --> D[Gitleaks -> SonarQube -> Trivy]
-  D --> E[Docker Build & Push]
-  E --> F[Argo CD Sync]
-  F --> G[Kubernetes Cluster]
-  G --> H[Monitoring & Logging: Prometheus + Grafana + Loki]
-```
 
+High Level Diagram
+
+```mermaid
 flowchart TD
     A[Developer] -->|Push Code| B[GitHub Repo]
     B --> C[GitHub Actions CI/CD]
@@ -69,7 +62,10 @@ flowchart TD
     end
 
     J --> Monitoring
+```
+CI/CD Flow
 
+```mermaid
 sequenceDiagram
     participant Dev as Developer
     participant GH as GitHub
@@ -86,8 +82,9 @@ sequenceDiagram
     Reg->>Argo: New Image Available
     Argo->>K8s: Sync Deployment
     K8s->>Dev: App Running with Monitoring
+```
 
-
+Loki Workflow
 
 ![Architecture](./docs/loki-alloy.png)
 
@@ -106,6 +103,17 @@ sequenceDiagram
 4. Application runs on **Kubernetes cluster**
 5. **Monitoring + Alerting** with Prometheus, Grafana, Alertmanager
 6. **Centralized Logging** with Loki + Grafana Alloy
+
+```mermaid
+flowchart LR
+  A[Developer writes code] --> B[GitHub Repo]
+  B --> C[GitHub Actions]
+  C --> D[Gitleaks -> SonarQube -> Trivy]
+  D --> E[Docker Build & Push]
+  E --> F[Argo CD Sync]
+  F --> G[Kubernetes Cluster]
+  G --> H[Monitoring & Logging: Prometheus + Grafana + Loki]
+```
 
 ---
 
