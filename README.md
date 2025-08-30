@@ -41,28 +41,30 @@ High Level Diagram
 
 ```mermaid
 flowchart TD
-    A[Developer] -->|Push Code| B[GitHub Repo]
+    A[Developer Code] --> B[GitHub Repo]
     B --> C[GitHub Actions CI/CD]
     C --> D[Gitleaks]
     C --> E[SonarQube]
     C --> F[Trivy Scan]
     C --> G[Docker Build & Push]
-    G --> H[Container Registry]
+    G --> H[ArgoCD]
+    H --> I[Kubernetes Cluster]
+    I --> J[Ingress / Services]
+    J --> K["Node.js App: DevConnectorV2"]
 
-    H --> I[ArgoCD GitOps]
-    I --> J[Kubernetes Cluster]
-    J --> K[Node.js App (DevConnectorV2)]
+    %% Monitoring & Logging
+    I --> L[Prometheus]
+    I --> M[Grafana]
+    I --> N[Alertmanager]
+    I --> O[Loki]
+    I --> P[Grafana Alloy]
 
-    subgraph Monitoring
-        L[Prometheus] --> M[Grafana]
-        K --> L
-        K --> N[Loki Logs]
-        N --> M
-        L --> O[Alertmanager]
-    end
+    M -->|Dashboards| L
+    M -->|Dashboards| O
+    N -->|Alerts| M
 
-    J --> Monitoring
 ```
+
 CI/CD Flow
 
 ```mermaid
@@ -82,6 +84,28 @@ sequenceDiagram
     Reg->>Argo: New Image Available
     Argo->>K8s: Sync Deployment
     K8s->>Dev: App Running with Monitoring
+```
+
+Prometheus Metrics Flow
+
+```mermaid
+flowchart LR
+    A["Node.js App (DevConnectorV2)"] -->|Exposes /metrics (Prometheus client)| B["Kubernetes Service"]
+    B --> C["Prometheus Server"]
+
+    subgraph Prometheus
+        C --> D["TSDB (Time Series Database)"]
+        C --> E["Alerting Rules"]
+    end
+
+    E --> F["Alertmanager"]
+    F --> G["Notification Channels (Email, Slack, etc.)"]
+
+    D --> H["Grafana Dashboards"]
+
+    subgraph Grafana
+        H --> I["Visualizations (CPU, Memory, Errors, Latency, etc.)"]
+    end
 ```
 
 Loki Workflow
